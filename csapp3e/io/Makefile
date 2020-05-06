@@ -17,6 +17,8 @@ PROGS =	statcheck\
 	sharing3\
 	readdir\
 	iofragments.o\
+	exercise-10-2\
+	exercise-10-3\
 
 all: $(CSAPP_SRC)/csapp.o $(PROGS) 
 $(PROGS): $(CSAPP_SRC)/csapp.o
