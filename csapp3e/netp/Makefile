@@ -15,6 +15,8 @@ PROGS =	echo.o\
 	echoserveri\
 	tiny/tiny\
 	netpfragments.o\
+	exercise-11-2.o\
+	exercise-11-3.o\
 
 all: $(CSAPP_SRC)/csapp.o $(PROGS) 
 $(PROGS): $(CSAPP_SRC)/csapp.o
