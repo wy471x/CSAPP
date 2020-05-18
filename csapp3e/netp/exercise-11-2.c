@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
@@ -10,10 +11,10 @@ int main(int argc, char *argv[])
     }
     
     char p[20] = {0};
-    char n[20] = {0};
-    strcpy(n, argv[1]);
-    
-    const char *result = inet_ntop(AF_INET, n, p, 20);
+    unsigned int n;
+    sscanf(argv[1], "%x", &n);
+    printf("n = %x\n", n); 
+    const char *result = inet_ntop(AF_INET, &n, p, 20);
     if(result == NULL){
         perror("inet_ntop error");
         return -1;
