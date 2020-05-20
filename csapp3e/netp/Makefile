@@ -17,6 +17,7 @@ PROGS =	echo.o\
 	netpfragments.o\
 	exercise-11-2.o\
 	exercise-11-3.o\
+	exercise-11-4.o\
 
 all: $(CSAPP_SRC)/csapp.o $(PROGS) 
 $(PROGS): $(CSAPP_SRC)/csapp.o
