@@ -198,6 +198,8 @@ void get_filetype(char *filename, char *filetype)
 void serve_dynamic(int fd, char *filename, char *cgiargs) 
 {
     char buf[MAXLINE], *emptylist[] = { NULL };
+    printf("filename: %s\n", filename);
+    printf("cgiargs: %s\n", cgiargs);
 
     /* Return first part of HTTP response */
     sprintf(buf, "HTTP/1.0 200 OK\r\n"); 
