@@ -16,6 +16,7 @@ void get_filetype(char *filename, char *filetype);
 void serve_dynamic(int fd, char *filename, char *cgiargs);
 void clienterror(int fd, char *cause, char *errnum, 
                  char *shortmsg, char *longmsg);
+static void sig_chld(int signo);
 
 int main(int argc, char **argv) 
 {
@@ -154,7 +155,7 @@ int parse_uri(char *uri, char *filename, char *cgiargs)
 void serve_static(int fd, char *filename, int filesize, char *requestBuffer)
 {
     int srcfd;
-    char *srcp, filetype[MAXLINE], buf[MAXBUF];
+    char /* *srcp , */filetype[MAXLINE], buf[MAXBUF];
 
     /* Send response headers to client */
     get_filetype(filename, filetype);    //line:netp:servestatic:getfiletype
@@ -176,10 +177,17 @@ void serve_static(int fd, char *filename, int filesize, char *requestBuffer)
     while(Rio_readn(srcfd, storageBuffer, sizeof(storageBuffer))){
         Rio_writen(backupFd, storageBuffer, strlen(storageBuffer));
     }
-    srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0); //line:netp:servestatic:mmap
+
+    char *staticBuffer = (char *)malloc(filesize);
+    int ret;
+    while( (ret=Rio_readn(srcfd, staticBuffer, filesize))){
+        printf("buffer = %s\n", staticBuffer);
+        Rio_writen(fd, staticBuffer, ret);
+    }
+    //srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0); //line:netp:servestatic:mmap
     Close(srcfd);                       //line:netp:servestatic:close
-    Rio_writen(fd, srcp, filesize);     //line:netp:servestatic:write
-    Munmap(srcp, filesize);             //line:netp:servestatic:munmap
+    //Rio_writen(fd, srcp, filesize);     //line:netp:servestatic:write
+    //Munmap(srcp, filesize);             //line:netp:servestatic:munmap
 }
 
 /*
@@ -195,6 +203,8 @@ void get_filetype(char *filename, char *filetype)
         strcpy(filetype, "image/png");
     else if (strstr(filename, ".jpg"))
         strcpy(filetype, "image/jpeg");
+    else if(strstr(filename, ".mp4"))
+        strcpy(filetype, "video/mpeg4");
     else
         strcpy(filetype, "text/plain");
 }  
@@ -216,15 +226,35 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
     sprintf(buf, "Server: Tiny Web Server\r\n");
     Rio_writen(fd, buf, strlen(buf));
 
+    if(signal(SIGCHLD, sig_chld) == SIG_ERR)
+        perror("signal error");
+
     if (Fork() == 0) { /* Child */ //line:netp:servedynamic:fork
         /* Real server would set all CGI vars here */
         setenv("QUERY_STRING", cgiargs, 1); //line:netp:servedynamic:setenv
         Dup2(fd, STDOUT_FILENO);         /* Redirect stdout to client */ //line:netp:servedynamic:dup2
         Execve(filename, emptylist, environ); /* Run CGI program */ //line:netp:servedynamic:execve
     }
-    Wait(NULL); /* Parent waits for and reaps child */ //line:netp:servedynamic:wait
+    //Wait(NULL); /* Parent waits for and reaps child */ //line:netp:servedynamic:wait
 }
 /* $end serve_dynamic */
+
+/*
+ * handling signal operation for SIGCHLD
+ * */
+/* $begin sig_chld*/
+static void sig_chld(int signo){
+    pid_t pid;
+    int status;
+    if(signo == SIGCHLD)
+    {
+        pid = wait(&status);
+        printf("child pid = %d\n", pid);
+        printf("child exit status = %d\n", status);
+
+    }
+}
+/* $end sig_chld*/
 
 /*
  * clienterror - returns an error message to the client
