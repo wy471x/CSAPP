@@ -4,19 +4,27 @@
 /* $begin adder */
 #include "csapp.h"
 
+int getNumberFromString(char *str);
+
 int main(void) {
     char *buf, *p;
-    char arg1[MAXLINE], arg2[MAXLINE], content[MAXLINE];
+    char /*arg1[MAXLINE], arg2[MAXLINE],*/ content[MAXLINE];
     int n1=0, n2=0;
 
     /* Extract the two arguments */
     if ((buf = getenv("QUERY_STRING")) != NULL) {
 	p = strchr(buf, '&');
 	*p = '\0';
-	strcpy(arg1, buf);
-	strcpy(arg2, p+1);
-	n1 = atoi(arg1);
-	n2 = atoi(arg2);
+	//strcpy(arg1, buf);
+	//strcpy(arg2, p+1);
+    // ---- added extra code by dunk start ----
+    n1 = getNumberFromString(buf);
+    printf("n1=%d\n", n1);
+    n2 = getNumberFromString(p + 1);
+    printf("n2=%d\n", n2);
+    // ---- added extra code by dunk end ----
+	//n1 = atoi(arg1);
+	//n2 = atoi(arg2);
     }
 
     /* Make the response body */
@@ -36,3 +44,18 @@ int main(void) {
     exit(0);
 }
 /* $end adder */
+
+/* $start getNumberFromString */
+int getNumberFromString(char *str)
+{
+    if(!str)
+        perror("valid string");
+
+    int value = 0;
+    while ((*str >= '0') && (*str <= 9)) {
+        value = value * 10 + (*str - '0');
+        str++;
+    }
+    return value;
+}
+/* $end getNumberFromString */

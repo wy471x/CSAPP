@@ -155,7 +155,7 @@ int parse_uri(char *uri, char *filename, char *cgiargs)
 void serve_static(int fd, char *filename, int filesize, char *requestBuffer)
 {
     int srcfd;
-    char /* *srcp , */filetype[MAXLINE], buf[MAXBUF];
+    char /**srcp ,*/ filetype[MAXLINE], buf[MAXBUF];
 
     /* Send response headers to client */
     get_filetype(filename, filetype);    //line:netp:servestatic:getfiletype
@@ -169,6 +169,7 @@ void serve_static(int fd, char *filename, int filesize, char *requestBuffer)
     Rio_writen(fd, buf, strlen(buf));    //line:netp:servestatic:endserve
 
     /* Send response body to client */
+    printf("filename=%s\n", filename);
     srcfd = Open(filename, O_RDONLY, 0); //line:netp:servestatic:open
     char storageFile[20], storageBuffer[MAXLINE];
     strcpy(storageFile, filename);
@@ -178,12 +179,16 @@ void serve_static(int fd, char *filename, int filesize, char *requestBuffer)
         Rio_writen(backupFd, storageBuffer, strlen(storageBuffer));
     }
 
+    // ---- added extra code by dunk start ----
+    lseek(srcfd, 0, SEEK_SET);
+
     char *staticBuffer = (char *)malloc(filesize);
     int ret;
-    while( (ret=Rio_readn(srcfd, staticBuffer, filesize))){
-        printf("buffer = %s\n", staticBuffer);
-        Rio_writen(fd, staticBuffer, ret);
-    }
+    ret=Rio_readn(srcfd, staticBuffer, filesize);
+    printf("buffer = %s, ret = %d\n", staticBuffer, ret);
+    Rio_writen(fd, staticBuffer, ret);
+    // ---- added extra code by dunk end ---
+
     //srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0); //line:netp:servestatic:mmap
     Close(srcfd);                       //line:netp:servestatic:close
     //Rio_writen(fd, srcp, filesize);     //line:netp:servestatic:write
