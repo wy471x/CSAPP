@@ -3,24 +3,24 @@
 	.globl	thread
 	.type	thread, @function
 thread:
-.LFB92:
+.LFB78:
 	.cfi_startproc
 	movq	(%rdi), %rcx
 	testq	%rcx, %rcx
 	jle	.L2
-	movl	$0, %eax
+	movl	$0, %edx
 .L3:
-	movq	cnt(%rip), %rdx
-	addq	$1, %rdx
-	movq	%rdx, cnt(%rip)
+	movq	cnt(%rip), %rax
 	addq	$1, %rax
-	cmpq	%rcx, %rax
+	movq	%rax, cnt(%rip)
+	addq	$1, %rdx
+	cmpq	%rdx, %rcx
 	jne	.L3
 .L2:
 	movl	$0, %eax
 	ret
 	.cfi_endproc
-.LFE92:
+.LFE78:
 	.size	thread, .-thread
 	.section	.rodata.str1.1,"aMS",@progbits,1
 .LC0:
@@ -33,64 +33,70 @@ thread:
 	.globl	main
 	.type	main, @function
 main:
-.LFB91:
+.LFB77:
 	.cfi_startproc
-	subq	$40, %rsp
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
+	subq	$32, %rsp
 	.cfi_def_cfa_offset 48
+	movq	%fs:40, %rax
+	movq	%rax, 24(%rsp)
+	xorl	%eax, %eax
 	cmpl	$2, %edi
-	je	.L5
+	je	.L6
 	movq	(%rsi), %rdx
-	movl	$.LC0, %esi
+	leaq	.LC0(%rip), %rsi
 	movl	$1, %edi
-	movl	$0, %eax
-	call	__printf_chk
+	call	__printf_chk@PLT
 	movl	$0, %edi
-	call	exit
-.L5:
+	call	exit@PLT
+.L6:
 	movq	8(%rsi), %rdi
 	movl	$10, %edx
 	movl	$0, %esi
-	call	strtol
+	call	strtol@PLT
 	cltq
-	movq	%rax, 8(%rsp)
-	leaq	8(%rsp), %rcx
-	movl	$thread, %edx
+	movq	%rax, (%rsp)
+	movq	%rsp, %rbx
+	leaq	8(%rsp), %rdi
+	movq	%rbx, %rcx
+	leaq	thread(%rip), %rdx
 	movl	$0, %esi
+	call	Pthread_create@PLT
 	leaq	16(%rsp), %rdi
-	call	Pthread_create
-	leaq	8(%rsp), %rcx
-	movl	$thread, %edx
+	movq	%rbx, %rcx
+	leaq	thread(%rip), %rdx
 	movl	$0, %esi
-	leaq	24(%rsp), %rdi
-	call	Pthread_create
+	call	Pthread_create@PLT
+	movl	$0, %esi
+	movq	8(%rsp), %rdi
+	call	Pthread_join@PLT
 	movl	$0, %esi
 	movq	16(%rsp), %rdi
-	call	Pthread_join
-	movl	$0, %esi
-	movq	24(%rsp), %rdi
-	call	Pthread_join
+	call	Pthread_join@PLT
 	movq	cnt(%rip), %rdx
-	movq	8(%rsp), %rax
+	movq	(%rsp), %rax
 	addq	%rax, %rax
 	cmpq	%rdx, %rax
-	je	.L6
+	je	.L7
 	movq	cnt(%rip), %rdx
-	movl	$.LC1, %esi
+	leaq	.LC1(%rip), %rsi
 	movl	$1, %edi
 	movl	$0, %eax
-	call	__printf_chk
-	jmp	.L7
-.L6:
-	movq	cnt(%rip), %rdx
-	movl	$.LC2, %esi
-	movl	$1, %edi
-	movl	$0, %eax
-	call	__printf_chk
-.L7:
+	call	__printf_chk@PLT
+.L8:
 	movl	$0, %edi
-	call	exit
+	call	exit@PLT
+.L7:
+	movq	cnt(%rip), %rdx
+	leaq	.LC2(%rip), %rsi
+	movl	$1, %edi
+	movl	$0, %eax
+	call	__printf_chk@PLT
+	jmp	.L8
 	.cfi_endproc
-.LFE91:
+.LFE77:
 	.size	main, .-main
 	.globl	cnt
 	.bss
@@ -99,5 +105,5 @@ main:
 	.size	cnt, 8
 cnt:
 	.zero	8
-	.ident	"GCC: (Ubuntu 4.8.1-2ubuntu1~12.04) 4.8.1"
+	.ident	"GCC: (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0"
 	.section	.note.GNU-stack,"",@progbits

@@ -35,6 +35,7 @@ PROGS =	hello\
 	rw1.o\
 	rw2.o\
 	rw3.o\
+	echoserver_processversion\
 
 all: $(CSAPP_SRC)/csapp.o $(PROGS)
 $(PROGS): $(CSAPP_SRC)/csapp.o 
@@ -78,6 +79,7 @@ echoservert_cnt: echoservert_cnt.o echo_cnt.o
 echoservert_pre: echoservert_pre.o echo_cnt.o sbuf.o
 echoservers: echoservers.o echo.o
 select: select.o echo.o
+echoserver_processversion: echoserver_processversion.o echo.o
 
 clean:
 	rm -f $(PROGS) *.o *~
